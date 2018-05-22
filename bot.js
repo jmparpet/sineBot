@@ -11,24 +11,19 @@ var config = require('./config')
 /* Get the util intro-inspect capability */
 const util = require('util')
 
-// var MY_TWITTER_ID = '994185294864965633';
-
-/* Set Twitter search phrase */
-// var TWITTER_SEARCH_PHRASE = '#technology OR #design';
-
 var Twit = require('twit')
 
 var Bot = new Twit(config)
 
 // Define user to follow
 
-var user = {name: 'sine_injuria'}
+var user = { name: 'sine_injuria' }
 
 console.log('Bot running for user ' + user.name)
 
 /* BotInit() : To initiate the bot */
 function BotInit (user) {
-  Bot.get('users/show', {screen_name: user.name}, function (err, reply) {
+  Bot.get('users/show', { screen_name: user.name }, function (err, reply) {
     if (err) { console.log('Error :' + err); return }
     user.id = reply.id_str
     console.log('User ID for ' + user.name + ': ' + user.id)
@@ -36,28 +31,31 @@ function BotInit (user) {
   })
 
   function BotInitiated () {
-    // var stream = Bot.stream('statuses/filter');
-    var stream = Bot.stream('statuses/filter', {follow: user.id})
+    var stream = Bot.stream('statuses/filter', { follow: user.id })
 
-    stream.on('tweet', function (msg) {
-      // console.log('Received message:\n' + util.inspect(msg, false, null))
-      // Get the tweet ID (if it is a tweet)
+    stream.on('tweet', tweetReceived)
+  }
+}
 
-      var tweetId = msg.id_str
+function tweetReceived (msg) {
+  console.log('Received message:\n' + util.inspect(msg, false, null))
 
-      // Retweet
+  // Get the tweet ID (if it is a tweet)
 
-      if (tweetId != null) {
-        Bot.post('statuses/retweet/:id', {id: tweetId},
-          function (err, data, response) {
-            if (err) {
-              console.log('Bot could not retweet, : ' + err)
-            } else {
-              console.log('Bot retweeted : ' + tweetId)
-            }
-          })
+  var tweetId = msg.id_str
+
+  // Retweet
+
+  if (tweetId != null) {
+    Bot.post('statuses/retweet/:id', { id: tweetId },
+      function (err, data, response) {
+        if (err) {
+          console.log('Bot could not retweet, : ' + err)
+        } else {
+          console.log('Bot retweeted : ' + tweetId)
+        }
       }
-    })
+    )
   }
 }
 
