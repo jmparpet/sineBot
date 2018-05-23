@@ -6,18 +6,29 @@
  */
 
 /* Configure the Twitter API */
-var config = require('./config')
+// var config = require('./config')
 
 /* Get the util intro-inspect capability */
 const util = require('util')
 
 var Twit = require('twit')
 
-var Bot = new Twit(config)
+/* Get the config name */
+var argv = require('minimist')(process.argv.slice(2))
+var cfgFile
+if (argv._.length > 0) {
+  cfgFile = argv._[0]
+} else {
+  cfgFile = 'config'
+}
+
+var config = require('./' + cfgFile)
+
+var Bot = new Twit(config.twitter_keys)
 
 // Define user to follow
 
-var user = { name: 'sine_injuria' }
+var user = config.retweet[0]
 
 console.log('Bot running for user ' + user.name)
 

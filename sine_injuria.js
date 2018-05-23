@@ -6,6 +6,6 @@ module.exports = {
     access_token_secret:  "ph1orIfTJv24t5f3hmR84pm2c8wv5YI72i5fXUHrpo1Ap"
   },
   retweet: [
-      {id: "sine_injuria"}
+      {name: "sine_injuria"}
   ]
 }
