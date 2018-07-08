@@ -49,24 +49,29 @@ function BotInit (user) {
 }
 
 function tweetReceived (msg) {
-  console.log('Received message:\n' + util.inspect(msg, false, null))
+  console.log('\nReceived message:\n' + util.inspect(msg, false, null))
 
   // Get the tweet ID (if it is a tweet)
 
   var tweetId = msg.id_str
+  var tweetingUserId = msg.user.id_str
 
   // Retweet
 
   if (tweetId != null) {
-    Bot.post('statuses/retweet/:id', { id: tweetId },
-      function (err, data, response) {
-        if (err) {
-          console.log('Bot could not retweet, : ' + err)
-        } else {
-          console.log('Bot retweeted : ' + tweetId)
+    if (tweetingUserId === user.id) {
+      Bot.post('statuses/retweet/:id', { id: tweetId },
+        function (err, data, response) {
+          if (err) {
+            console.log('--- Bot could not retweet : ' + err)
+          } else {
+            console.log('--- Bot retweeted : ' + tweetId)
+          }
         }
-      }
-    )
+      )
+    } else {
+      console.log('--- Tweet is a reply to ' + user.name + '. Ignoring')
+    }
   }
 }
 
