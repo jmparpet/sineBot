@@ -24,32 +24,54 @@ if (argv._.length > 0) {
 
 var config = require('./' + cfgFile)
 
-var Bot = new Twit(config.twitter_keys)
+// Define retweets bots
+var botKey = []
+var botKeys = config.twitter_keys
+for (var i = 0; i < botKeys.length; i++) {
+  botKey.push({
+    bot: new Twit(botKeys[i].keys),
+    name: botKeys[i].name
+  })
+}
 
 // Define user to follow
 
 var user = config.retweet[0]
 
-console.log('Bot running for user ' + user.name)
-
 /* BotInit() : To initiate the bot */
 function BotInit (user) {
-  Bot.get('users/show', { screen_name: user.name }, function (err, reply) {
+  botKey[0].bot.get('users/show', { screen_name: user.name }, function (err, reply) {
     if (err) { console.log('Error :' + err); return }
     user.id = reply.id_str
-    console.log('User ID for ' + user.name + ': ' + user.id)
+    var tweetNames = botKey[0].name
+    for (var i = 1, len = botKey.length; i < len; i++) {
+      tweetNames += '\n' + botKey[i].name
+    }
+    console.log('The following users will retweet tweets from ' + user.name + ':\n' +
+      tweetNames)
+    console.log('--------------------')
     BotInitiated()
   })
 
   function BotInitiated () {
-    var stream = Bot.stream('statuses/filter', { follow: user.id })
+    var stream = botKey[0].bot.stream('statuses/filter', { follow: user.id })
 
     stream.on('tweet', tweetReceived)
   }
 }
 
+function retweetMsg (bot, name, tweetId) {
+  bot.post('statuses/retweet/:id', { id: tweetId },
+    function (err, data, response) {
+      if (!err) {
+        console.log(new Date().toISOString() + ' | ' + name + ' retweeted tweet: ' + tweetId)
+      }
+    }
+  )
+}
+
 function tweetReceived (msg) {
-  console.log('\nReceived message:\n' + util.inspect(msg, false, null))
+  // console.log('\nReceived message:\n' + util.inspect(msg, false, null))
 
   // Get the tweet ID (if it is a tweet)
 
@@ -60,17 +82,9 @@ function tweetReceived (msg) {
 
   if (tweetId != null) {
     if (tweetingUserId === user.id) {
-      Bot.post('statuses/retweet/:id', { id: tweetId },
-        function (err, data, response) {
-          if (err) {
-            console.log('--- Bot could not retweet : ' + err)
-          } else {
-            console.log('--- Bot retweeted : ' + tweetId)
-          }
-        }
-      )
-    } else {
-      console.log('--- Tweet is a reply to ' + user.name + '. Ignoring')
+      for (var i = 0, len = botKey.length; i < len; i++) {
+        retweetMsg(botKey[i].bot, botKey[i].name, tweetId)
+      }
     }
   }
 }
